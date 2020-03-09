@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新型冠状肺炎最新情况（中国内地）</title>
+    <link href="https://cdn.bootcss.com/twitter-bootstrap/3.3.4/css/bootstrap.css" rel="stylesheet">
+    <link href="static/css/style.css" rel="stylesheet">
+    <script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/twitter-bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="static/js/echarts.min.js"></script>
+    <script src="static/js/gansu.js"></script>
+  </head>
+
+  <body style="margin:0;padding:0;">
+    <div id="wrapper">
+      <div class="overlay"></div>
+
+      <!-- Sidebar -->
+      <nav class="navbar navbar-inverse navbar-fixed-top" id="sidebar-wrapper" role="navigation">
+          <ul class="nav sidebar-nav">
+              <li class="sidebar-brand">
+                  <a href="#">
+                    每天21:00更新
+                  </a>
+              </li>
+              <li>
+                <a href="../"><i class="fa fa-fw fa-home"></i> China</a>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-fw fa-plus"></i> Provinces <span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li class="dropdown-header">各省具体情况</li>
+                  <li><a href="/yunnan">云南</a></li>
+                  <li><a href="/neimenggu">内蒙古</a></li>
+                  <li><a href="/beijing">北京</a></li>
+                  <li><a href="/jilin">吉林</a></li>
+                  <li><a href="/sichuan">四川</a></li>
+                  <li><a href="/ningxia">宁夏</a></li>
+                  <li><a href="/anhui">安徽</a></li>
+                  <li><a href="/shandong">山东</a></li>
+                  <li><a href="/shanxi">山西</a></li>
+                  <li><a href="/guangdong">广东</a></li>
+                  <li><a href="/guangxi">广西</a></li>
+                  <li><a href="/jiangsu">江苏</a></li>
+                  <li><a href="/jiangxi">江西</a></li>
+                  <li><a href="/hebei">河北</a></li>
+                  <li><a href="/heinan">河南</a></li>
+                  <li><a href="/zhejiang">浙江</a></li>
+                  <li><a href="/hainan">海南</a></li>
+                  <li><a href="/hubei">湖北</a></li>
+                  <li><a href="/hunan">湖南</a></li>
+                  <li><a href="#">甘肃</a></li>
+                  <li><a href="/fujian">福建</a></li>
+                  <li><a href="/guizhou">贵州</a></li>
+                  <li><a href="/liaoning">辽宁</a></li>
+                  <li><a href="/chongqing">重庆</a></li>
+                  <li><a href="/shaanxi">陕西</a></li>
+                  <li><a href="/heilongjiang">黑龙江</a></li>
+                  <li><a href="/xinjiang">新疆</a></li>
+                  <li><a href="/qinghai">青海</a></li>
+                  <li><a href="/tianjin">天津</a></li>
+                  <li><a href="/shanghai">上海</a></li>
+                  <li><a href="/xizang">西藏</a></li>
+                </ul>
+              </li>
+          </ul>
+      </nav>
+      <!-- /#sidebar-wrapper -->
+
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
+        <button type="button" class="hamburger is-closed animated fadeInLeft" data-toggle="offcanvas">
+          <span class="hamb-top"></span>
+          <span class="hamb-middle"></span>
+          <span class="hamb-bottom"></span>
+        </button>
+        <div id="Map" style="width:100%;height:100%;"></div>
+      </div>
+      <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+    <script type="text/javascript">
+      $(document).ready(function () {
+        var trigger = $('.hamburger'),
+            overlay = $('.overlay'),
+           isClosed = false;
+
+          trigger.click(function () {
+            hamburger_cross();
+          });
+
+          function hamburger_cross() {
+
+            if (isClosed == true) {
+              overlay.hide();
+              trigger.removeClass('is-open');
+              trigger.addClass('is-closed');
+              isClosed = false;
+            } else {
+              overlay.show();
+              trigger.removeClass('is-closed');
+              trigger.addClass('is-open');
+              isClosed = true;
+            }
+        }
+
+        $('[data-toggle="offcanvas"]').click(function () {
+              $('#wrapper').toggleClass('toggled');
+        });
+      });
+    </script>
+
+    <script type="text/javascript">
+      $(function() {
+        var MapContainer = document.getElementById("Map");
+        var resizeMapContainer = function () {
+                    MapContainer.style.width = window.innerWidth+'px';
+                    MapContainer.style.height = window.innerHeight+'px';
+                };
+        resizeMapContainer();
+        var myChart = echarts.init(MapContainer, "dark", { renderer: "canvas" });
+        $.ajax({
+          type: "POST",
+          dataType: "json",
+          data: {'type': 'map-provinces-gansu'},
+          url: "/data",
+          success: function(result) {
+            myChart.setOption(result);
+            __data = result;
+          }
+        });
+        myChart.on("legendselectchanged", function(params) {
+          var data = __data.series.filter(function(x) {
+            return x.name === params.name;
+          })[0].data;
+          var arr = [];
+          for (var x in data) arr.push(data[x].value);
+          arr[arr.indexOf(Math.max.apply(null, arr))] = null;
+          var num = Math.max.apply(null, arr);
+          myChart.setOption({
+            visualMap: {
+              max: num
+            }
+          });
+        });
+        window.onresize = function() {
+          resizeMapContainer();
+          myChart.resize();
+        };
+      });
+    </script>
+  </body>
+</html>
